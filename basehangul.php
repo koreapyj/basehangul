@@ -7,6 +7,7 @@
  *	Extended Wansung is not needed :D
  *
  *	2014/10/09 Harukana Sora (twitter.com/koreapyj)
+ *	Last Change: 2014/10/11
  *
  */
 
@@ -17,8 +18,8 @@ class BaseHangul {
 		$this->cho	= array(0,2,3,5,6,7,9,11,12,14,15,16,17,18);
 		$this->jung	= array(0,2,4,6,8,12,13,17,18,20);
 		$this->jong	= array(0,1,4,7,8,16,17,19);
-		$this->padding = chr(0xBD).chr(0xC1);
-		$this->encoding = $encoding;
+		$this->padding	= chr(0xD7).chr(0x50);
+		$this->encoding	= $encoding;
 	}
 
 	function encode($data) {
