@@ -7,24 +7,21 @@
  *	Extended Wansung is not needed :D
  *
  *	2014/10/09 Harukana Sora (twitter.com/koreapyj)
- *	Last Change: 2014/10/11
+ *	Last Change: 2014/10/12
  *
  */
 
 class BaseHangul {
-	private $cho, $jung, $jong, $padding, $encoding;
+	private $padding, $charset;
 
-	function __construct($encoding = 'UTF-8') {
-		$this->cho	= array(0,2,3,5,6,7,9,11,12,14,15,16,17,18);
-		$this->jung	= array(0,2,4,6,8,12,13,17,18,20);
-		$this->jong	= array(0,1,4,7,8,16,17,19);
-		$this->padding	= chr(0xD7).chr(0x50);
-		$this->encoding	= $encoding;
+	function __construct($charset = 'UTF-8') {
+		$this->padding	= chr(0xC8).chr(0xE5);
+		$this->charset	= $charset;
 	}
 
 	function encode($data) {
-		$input = array(0,0,0,0,0);	// 1.0 byte  array
-		$output= array(0,0,0,0);		// 1.5 bytes array
+		$input = array(0,0,0,0,0);
+		$output= array(0,0,0,0);
 		$result = '';
 		$len = strlen($data);
 		for($i=0;$i<$len;$i++) {
@@ -44,17 +41,17 @@ class BaseHangul {
 				unset($input);
 			}
 		}
-		return iconv('UTF-16BE', $this->encoding, $result);
+		return iconv('EUC-KR', $this->charset, $result);
 	}
 
 	function decode($data) {
-		$data = iconv($this->encoding, 'UTF-16BE', $data);
+		$data = iconv($this->charset, 'EUC-KR', $data);
 		$output = array(0, 0, 0, 0, 0);
 		$result = '';
-		for($i=0;$i<mb_strlen($data, 'UTF-16BE');) {
+		for($i=0;$i<mb_strlen($data, 'EUC-KR');) {
 			$output[0]=$output[1]=$output[2]=$output[3]=$output[4]=-1;
 			for($j=$i;$j<$i+4;$j++) {
-				$input[$j%4]=$this->hanguldec(mb_substr($data, $j, 1, 'UTF-16BE'));
+				$input[$j%4]=$this->hanguldec(mb_substr($data, $j, 1, 'EUC-KR'));
 			}
 			$i=$j;
 			switch(0) {
@@ -91,23 +88,21 @@ class BaseHangul {
 
 	private function dechangul($num) {
 		if($num>1023) {
-			throw new Exception('BaseHangul: Something went wrong (dechangul: Out of range)');
+			throw new Exception('Out of range');
 			return false;
 		}
-		$code = $this->jong[$num%8]+28*$this->jung[$num/8%10]+28*21*$this->cho[$num/8/10%14]+0xAC00;
-		return chr($code >> 8 & 0xFF).chr($code & 0xFF);
+		return chr($num/0x5E+0xB0).chr($num%0x5E+0xA1);
 	}
 
 	private function hanguldec($hangul) {
 		if($hangul == $this->padding)
 			return false;
 		$code = hexdec(bin2hex($hangul));
-		if(	($cho = array_search(intval(($code-0xAC00)/(28*21)), $this->cho)) === false || 
-				($jung= array_search(intval((($code-0xAC00)%(28*21))/28), $this->jung)) === false ||
-				($jong= array_search(intval(($code-0xAC00)%28), $this->jong)) === false) {
-			throw new Exception('BaseHangul: Something went wrong (Not a valid BaseHangul string.)');
+		$num = ($code & 0xFF) - 0xA1 + (($code >> 8 & 0xFF)-0xB0)*0x5E;
+		if($num > 1023 || $num < 0) {
+			throw new Exception('Not a valid BaseHangul string');
 			return false;
 		}
-		return $jong + $jung*8 + $cho*8*10;
+		return $num;
 	}
 }
