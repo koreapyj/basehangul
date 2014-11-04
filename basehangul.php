@@ -35,9 +35,9 @@ class BaseHangul {
 				$output[3] = (($input[3] & 0x03) << 8) | (($input[4] & 0xFF)     );
 
 				$result.=$this->dechangul($output[0]);
-				$result.=!$output[1] && $index <= 2?$this->padding:$this->dechangul($output[1]);
-				$result.=!$output[2] && $index <= 3?$this->padding:$this->dechangul($output[2]);
-				$result.=!$output[3] && $index <= 4?$this->padding:$this->dechangul($output[3]);
+				$result.=!$output[1] && $index <= 1?$this->padding:$this->dechangul($output[1]);
+				$result.=!$output[2] && $index <= 2?$this->padding:$this->dechangul($output[2]);
+				$result.=!$output[3] && $index <  3?$this->padding:$this->dechangul($index==3?$output[3]>>8|1024:$output[3]);
 				unset($input);
 			}
 		}
@@ -69,13 +69,15 @@ class BaseHangul {
 							$output[2] = -1;
 						break;
 					}
-					$output[3] = (($input[2] & 0x3F) << 2) | (($input[3] & 0x300) >> 8);
+					$output[3] = (($input[2] & 0x3F) << 2) | ((($input[3]>1023?$input[3] ^ 1024 << 8:$input[3]) & 0x300) >> 8);
 					if($input[3]===false) {
 						if($output[3] == 0)
 							$output[3] = -1;
 						break;
 					}
 					$output[4] = ($input[3] & 0xFF);
+					if($input[3]>1023)
+						$output[4] = -1;
 			}
 			for($j=0;$j<5;$j++) {
 				if($output[$j]==-1)
@@ -87,7 +89,7 @@ class BaseHangul {
 	}
 
 	private function dechangul($num) {
-		if($num>1023) {
+		if($num>1027) {
 			throw new Exception('Out of range');
 			return false;
 		}
@@ -99,7 +101,7 @@ class BaseHangul {
 			return false;
 		$code = hexdec(bin2hex($hangul));
 		$num = ($code & 0xFF) - 0xA1 + (($code >> 8 & 0xFF)-0xB0)*0x5E;
-		if($num > 1023 || $num < 0) {
+		if($num > 1027 || $num < 0) {
 			throw new Exception('Not a valid BaseHangul string');
 			return false;
 		}
