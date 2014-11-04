@@ -7,7 +7,7 @@
  *	Extended Wansung is not needed :D
  *
  *	2014/10/09 Harukana Sora (twitter.com/koreapyj)
- *	Last Change: 2014/10/12
+ *	Last Change: 2014/11/05
  *
  */
 
@@ -35,9 +35,9 @@ class BaseHangul {
 				$output[3] = (($input[3] & 0x03) << 8) | (($input[4] & 0xFF)     );
 
 				$result.=$this->dechangul($output[0]);
-				$result.=$index==0?$this->padding:$this->dechangul($output[1]);
-				$result.=$index< 2?$this->padding:$this->dechangul($output[2]);
-				$result.=$index< 4?$this->padding:$this->dechangul($output[3]);
+				$result.=!$output[1] && $index <= 2?$this->padding:$this->dechangul($output[1]);
+				$result.=!$output[2] && $index <= 3?$this->padding:$this->dechangul($output[2]);
+				$result.=!$output[3] && $index <= 4?$this->padding:$this->dechangul($output[3]);
 				unset($input);
 			}
 		}
