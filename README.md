@@ -23,3 +23,6 @@ echo $plaintext."\n";
 넥라똔먈늴멥갯놓궂뗐밸뮤뉴뗐뀄굡덜멂똑뚤
 This is an encoded string
 ```
+
+## 라이센스
+Public Domain
